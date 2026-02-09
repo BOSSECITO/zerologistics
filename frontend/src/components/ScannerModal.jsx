@@ -15,16 +15,24 @@ export default function ScannerModal({ open, onClose, onResult }) {
         const cams = await Html5Qrcode.getCameras()
         if (!cams?.length) throw new Error('No se detectó cámara')
 
-        // ✅ Priorizar cámara trasera de forma fiable:
-        // 1) intentamos por label (si existe)
-        // 2) si labels vienen vacíos, elegimos la "última" (suele ser trasera en móviles)
         const labeledBack = cams.find(c => /back|rear|environment/i.test(c.label || ''))
         const fallbackBack = cams.length > 1 ? cams[cams.length - 1] : cams[0]
         const backCam = labeledBack || fallbackBack
 
         await scanner.start(
           { deviceId: { exact: backCam.id } },
-          { fps: 10, qrbox: { width: 250, height: 250 } },
+          {
+            fps: 12,
+            qrbox: { width: 280, height: 280 },
+            aspectRatio: 16 / 9,
+            // ✅ Esto mejora enfoque/calidad en muchos Android (y evita cámara “potato”)
+            videoConstraints: {
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+              facingMode: 'environment',
+              advanced: [{ focusMode: 'continuous' }]
+            }
+          },
           (decodedText) => {
             onResult(decodedText)
             onClose()
