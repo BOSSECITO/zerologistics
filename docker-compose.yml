@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: zero
+      POSTGRES_PASSWORD: zero
+      POSTGRES_DB: zero
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg2://zero:zero@db:5432/zero
+      SECRET_KEY: dev-secret
+      UPLOAD_DIR: /data/uploads
+      ADMIN_USER: admin
+      ADMIN_PASSWORD: admin123
+      ADMIN_NAME: Admin ZERO
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+volumes:
+  db_data:
+  uploads:
