@@ -215,7 +215,7 @@ export default function Admin(){
             {drivers.map(d => <option key={d.id} value={d.id}>{d.full_name} (@{d.username})</option>)}
           </select>
           <div style={{marginTop:12}}>
-            <button className="btn" style={{width:'100%'}} onClick={createPackage}>Crear pedido</button>
+            <button onClick={createPackage} className="btn" style={{width:'100%'}}>Crear pedido</button>
           </div>
 
           <hr />
@@ -233,10 +233,24 @@ export default function Admin(){
           <div style={{marginTop:12}}>
             <button className="btn" style={{width:'100%'}} onClick={assignByCode}>Asignar</button>
           </div>
-        </div>
+        </div allows compilation.
       </div>
       <AdminMap />
-      <ScannerModal open={scanOpen} onClose={()=>setScanOpen(false)} onResult={(t)=>setSearchCode(t)} />
+      <ScannerModal
+        open={scanOpen}
+        onClose={()=>setScanOpen(false)}
+        onResult={async (t)=>{
+          try{
+            const code = String(t || '').trim()
+            setSearchCode(code)
+            if (!code) throw new Error('Código inválido')
+            await api.assignByCode(code, Number(assignDriverId))
+            await load()
+          }catch(e){
+            setErr(String(e.message||e))
+          }
+        }}
+      />
     </div>
   )
 
